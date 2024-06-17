@@ -50,7 +50,7 @@ I was seeing latency of ~2s for each document:
 
 The puppeteer JS code and built-in Chromium browser have to be started for each input file. Also, there's presently some error in MermaidJS itself and the error message leaks out and cannot be suppressed (without `... > /dev/null`).
 
-This project uses a user-installed installed Chrome and communicates directly with it through the Chrome Devtools Protocol. It also allows passing multiple input files, to reuse a spun-up headless browswer:
+This project uses a user-installed installed Chrome and communicates directly with it through the Chrome Devtools Protocol. It also allows passing multiple input files, to reuse the spun-up headless browswer:
 
 ```none
 % usr/bin/time mermaid-cli -l testdata/*.mmd
