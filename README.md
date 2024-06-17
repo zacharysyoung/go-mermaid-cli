@@ -53,27 +53,29 @@ The puppeteer JS code and built-in Chromium browser have to be started for each 
 This project uses a user-installed installed Chrome and communicates directly with it through the Chrome Devtools Protocol. It also allows passing multiple input files, to reuse the spun-up headless browswer:
 
 ```none
-% usr/bin/time mermaid-cli -l testdata/*.mmd
-2024/06/17 11:16:29 starting headless browser
-2024/06/17 11:16:30 rendered testdata/flow.svg
-2024/06/17 11:16:30 rendered testdata/sequence.svg
-2024/06/17 11:16:30 rendered testdata/state.svg
-        0.53 real         0.13 user         0.07 sys
+% /usr/bin/time mermaid-cli -l testdata/*.mmd
+2024/06/17 12:31:23 starting headless browser
+2024/06/17 12:31:24 rendered testdata/flow.svg
+2024/06/17 12:31:24 rendered testdata/sequence.svg
+2024/06/17 12:31:24 rendered testdata/state.svg
+2024/06/17 12:31:24 stopped headless browser
+        0.53 real         0.13 user         0.06 sys
 ```
 
 Log events (with the -l flag) print to standard error.
 
-It also has a simple watch flag that monitors (every 250ms) the input files for a new modification times and automatically re-renders:
+It also has a simple watch flag that checks the input files every 250ms for a new modification times and, if newly modified, automatically re-renders:
 
 ```none
 % mermaid-cli -l -w testdata/*.mmd
-2024/06/17 10:40:31 starting headless browser
-2024/06/17 10:40:32 rendered testdata/flow.svg
-2024/06/17 10:40:32 rendered testdata/sequence.svg
-2024/06/17 10:40:32 rendered testdata/state.svg
-2024/06/17 10:40:32 watching...
-2024/06/17 10:40:39 rendered testdata/state.svg
-2024/06/17 10:40:43 rendered testdata/state.svg
+2024/06/17 12:31:56 starting headless browser
+2024/06/17 12:31:56 rendered testdata/flow.svg
+2024/06/17 12:31:56 rendered testdata/sequence.svg
+2024/06/17 12:31:56 rendered testdata/state.svg
+2024/06/17 12:31:56 watching...
+2024/06/17 12:32:04 rendered testdata/flow.svg
+2024/06/17 12:32:09 rendered testdata/state.svg
 ^C
-2024/06/17 10:40:47 done
+2024/06/17 12:32:12 done watching
+2024/06/17 12:32:12 stopped headless browser
 ```
