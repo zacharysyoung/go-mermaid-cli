@@ -1,11 +1,11 @@
 /*
-Mermaid-CLI takes MermaidJS document with an MMD extension,
-renders it and saves it to a file with the same name but with
-an SVG extension.
+Mermaid-CLI takes MermaidJS documents with a .mmd extension and
+renders them to SVG files with the same name but with a .svg
+extension.
 
 usage: mermaid-cli [-l] [-w] file.mmd [file2.mmd ...]
 
-The following was largely cribbed from:
+The following was inspired by:
 https://github.com/abhinav/goldmark-mermaid/blob/main/mermaidcdp/compiler.go
 */
 package main
@@ -34,6 +34,11 @@ var (
 	logFlag   = flag.Bool("l", false, "turn on logging")
 
 	renderer svgRenderer
+)
+
+const (
+	mmd = ".mmd"
+	svg = ".svg"
 )
 
 func usage() {
@@ -75,11 +80,12 @@ func main() {
 	renderer.Stop()
 }
 
-const (
-	mmd = ".mmd"
-	svg = ".svg"
-)
-
+// watchAndRender immediately renders the MermaidJS documents in
+// inputNames and sets up a watcher to rerender the documents if
+// they change.
+//
+// The watcher polls all files every 250ms.  It prints and exits
+// for any error.
 func watchAndRender(inputNames []string) {
 	modTime := func(name string) time.Time {
 		info, err := os.Stat(name)
@@ -123,6 +129,9 @@ Loop:
 	return
 }
 
+// renderMMD renders the MermaidJS document at inputName.
+//
+// It prints and exits for any error.
 func renderMMD(inputName string) {
 	b, err := os.ReadFile(inputName)
 	if err != nil {
@@ -137,6 +146,9 @@ func renderMMD(inputName string) {
 	}
 	log.Println("rendered", outName)
 }
+
+// outputName converts an input MMD filename to an output SVG
+// filename, e.g., foo.mmd -> foo.svg.
 func outputName(inputName string) string { return strings.TrimSuffix(inputName, mmd) + svg }
 
 // svgRenderer manages the setup and teardown of the headeless
@@ -154,8 +166,9 @@ type mermaidInitializeConfig struct {
 }
 
 // mermaidJSSource is the source for MermaidJS that will be
-// registered with the headles Chrome browser.  mermaid-cli
-// uses the minified version (see download.sh) for a smaller
+// registered with the headles Chrome browser.
+//
+// Use the minified version (see download.sh) for a smaller
 // binary.
 //
 //go:embed mermaid.min.js
@@ -256,16 +269,18 @@ func enableLogging() {
 	log.SetOutput(os.Stderr)
 }
 
-// fatalf prints an error to Stderr and exits with return code 2.
+// fatalf logs the format string and its arguments to Stderr and
+// exits with return code 1.
+//
 // It also adds some extra formatting so the caller doesn't have
 // to.
 func fatalf(format string, args ...any) {
-	enableLogging()
 	if !strings.HasPrefix(format, "error: ") {
 		format = "error: " + format
 	}
 	if !strings.HasSuffix(format, "\n") {
 		format += "\n"
 	}
+	enableLogging()
 	log.Fatalf(format, args...)
 }
