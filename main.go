@@ -136,7 +136,7 @@ Loop:
 		}
 	}
 
-	log.Println("done")
+	log.Println("done watching")
 	return
 }
 
@@ -200,12 +200,10 @@ async function renderSVG(src) {
 func NewRenderer() svgRenderer {
 	log.Println("starting headless browser")
 
-	// Start Chrome
 	ctx, cancel := chromedp.NewContext(context.Background())
 
+	// Start Chrome and load MermaidJS in browser
 	var ready *cdruntime.RemoteObject
-
-	// Load MermaidJS in browser
 	if err := chromedp.Run(ctx, chromedp.Evaluate(mermaidJSSource, &ready)); err != nil {
 		fatalf("set up headless browser: %w", err)
 	}
@@ -254,7 +252,10 @@ func (r svgRenderer) Render(mmdSource string) (svgResult string) {
 }
 
 // Stop stops the headless Chrome browser.
-func (r svgRenderer) Stop() { r.cancel() }
+func (r svgRenderer) Stop() {
+	r.cancel()
+	log.Println("stopped headless browser")
+}
 
 // jsonEncodeJS JSON-encodes encodable, and wraps it in pre and
 // post... presumably to make it ready for from chromedp to send
