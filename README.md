@@ -64,7 +64,7 @@ This project uses a user-installed installed Chrome and communicates directly wi
 
 Log events (with the -l flag) print to standard error.
 
-It also has a simple watch flag that checks the input files every 250ms for a new modification times and, if newly modified, automatically re-renders:
+It also has a simple watch flag that checks the input files every 250ms for new modification times.  If it finds a newly-modified input file it re-renders it:
 
 ```none
 % mermaid-cli -l -w testdata/*.mmd
