@@ -47,6 +47,12 @@ func usage() {
 	os.Exit(2)
 }
 
+// renderPair holds the names of the input MermaidJS document
+// and output SVG file.
+type renderPair struct {
+	mmdName, svgName string
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
@@ -62,19 +68,24 @@ func main() {
 		enableLogging()
 	}
 
+	pairs := make([]renderPair, 0)
 	for _, inputName := range flag.Args() {
 		if !strings.HasSuffix(inputName, mmd) {
 			fatalf("got input MermaidJS document %s; expected it to end with %s", inputName, mmd)
 		}
+		pairs = append(pairs, renderPair{
+			mmdName: inputName,
+			svgName: strings.TrimSuffix(inputName, mmd) + svg,
+		})
 	}
 
 	renderer = NewRenderer()
 	switch {
 	case *watchFlag:
-		watchAndRender(flag.Args())
+		watchAndRender(pairs)
 	default:
-		for _, inputName := range flag.Args() {
-			renderMMD(inputName)
+		for _, pair := range pairs {
+			render(pair)
 		}
 	}
 	renderer.Stop()
@@ -86,7 +97,7 @@ func main() {
 //
 // The watcher polls all files every 250ms.  It prints and exits
 // for any error.
-func watchAndRender(inputNames []string) {
+func watchAndRender(pairs []renderPair) {
 	modTime := func(name string) time.Time {
 		info, err := os.Stat(name)
 		if err != nil {
@@ -96,9 +107,9 @@ func watchAndRender(inputNames []string) {
 	}
 
 	modTimes := make(map[string]time.Time)
-	for _, inputName := range inputNames {
-		renderMMD(inputName)
-		modTimes[inputName] = modTime(inputName)
+	for _, pair := range pairs {
+		render(pair)
+		modTimes[pair.mmdName] = modTime(pair.mmdName)
 	}
 
 	stop := make(chan os.Signal)
@@ -115,11 +126,11 @@ Loop:
 			fmt.Fprintln(os.Stdout)
 			break Loop
 		case <-ticker.C:
-			for _, inputName := range inputNames {
-				t := modTime(inputName)
-				if t.After(modTimes[inputName]) {
-					renderMMD(inputName)
-					modTimes[inputName] = t
+			for _, pair := range pairs {
+				t := modTime(pair.mmdName)
+				if t.After(modTimes[pair.mmdName]) {
+					modTimes[pair.mmdName] = t
+					render(pair)
 				}
 			}
 		}
@@ -129,27 +140,23 @@ Loop:
 	return
 }
 
-// renderMMD renders the MermaidJS document at inputName.
+// render renders the MermaidJS document at pair.mmdName to
+// SVG at pair.svgName.
 //
 // It prints and exits for any error.
-func renderMMD(inputName string) {
-	b, err := os.ReadFile(inputName)
+func render(pair renderPair) {
+	b, err := os.ReadFile(pair.mmdName)
 	if err != nil {
 		fatalf("couldn't read MMD: %v", err)
 	}
 
 	svgResult := renderer.Render(string(b))
 
-	outName := outputName(inputName)
-	if err := os.WriteFile(outName, []byte(svgResult), 0644); err != nil {
+	if err := os.WriteFile(pair.svgName, []byte(svgResult), 0644); err != nil {
 		fatalf("couldn't write SVG: %v", err)
 	}
-	log.Println("rendered", outName)
+	log.Println("rendered", pair.svgName)
 }
-
-// outputName converts an input MMD filename to an output SVG
-// filename, e.g., foo.mmd -> foo.svg.
-func outputName(inputName string) string { return strings.TrimSuffix(inputName, mmd) + svg }
 
 // svgRenderer manages the setup and teardown of the headeless
 // Chrome browser, and the rendering of a MermaidJS document.
