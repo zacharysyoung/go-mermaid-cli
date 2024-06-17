@@ -1,0 +1,8 @@
+# don't track about render artifacts
+testdata/*.svg
+
+# don't include MermaidJS source
+mermaid.min.js
+
+# ignore any build artifact
+mermaid-cli
