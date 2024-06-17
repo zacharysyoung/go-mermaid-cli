@@ -27,7 +27,7 @@ Thank you, Abhinav Gupta!
 
 I wanted lower latency than the official [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) for a default render of multiple documents to SVG.
 
-Given this render script:
+Given this script to render the flow.mmd, sequence.mmd, and state.mmd files in [testdata](./testdata):
 
 ```sh
 #!/bin/sh
@@ -41,7 +41,7 @@ done
 I was seeing latency of ~2s for each document:
 
 ```none
-/usr/bin/time sh render.sh
+% /usr/bin/time sh render.sh
 [@zenuml/core] Store is a function and is not initiated in 1 second.
 [@zenuml/core] Store is a function and is not initiated in 1 second.
 [@zenuml/core] Store is a function and is not initiated in 1 second.
@@ -53,7 +53,7 @@ The puppeteer JS code and built-in Chromium browser have to be started for each 
 This project uses a user-installed installed Chrome and communicates directly with it through the Chrome Devtools Protocol. It also allows passing multiple input files, to reuse a spun-up headless browswer:
 
 ```none
-usr/bin/time mermaid-cli -l testdata/*.mmd
+% usr/bin/time mermaid-cli -l testdata/*.mmd
 2024/06/17 11:16:29 starting headless browser
 2024/06/17 11:16:30 rendered testdata/flow.svg
 2024/06/17 11:16:30 rendered testdata/sequence.svg
@@ -66,7 +66,7 @@ Log events (with the -l flag) print to standard error.
 It also has a simple watch flag that monitors (every 250ms) the input files for a new modification times and automatically re-renders:
 
 ```none
-mermaid-cli -l -w testdata/*.mmd
+% mermaid-cli -l -w testdata/*.mmd
 2024/06/17 10:40:31 starting headless browser
 2024/06/17 10:40:32 rendered testdata/flow.svg
 2024/06/17 10:40:32 rendered testdata/sequence.svg
