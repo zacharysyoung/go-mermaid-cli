@@ -53,7 +53,21 @@ With this mermaid-cli it's down to ~500ms:
         0.51 real         0.13 user         0.06 sys
 ```
 
-The official cli doesn't support (as far as I can see) batching multiple documents, which means that in the background multiple instances of a headless browser have to be spun up, one after the other, for each document.
+The official cli doesn't support (as far as I can see) batching multiple documents, which means that in the background multiple instances of a headless browser have to be spun up, one after the other, for each document:
+
+```none
+% /usr/bin/time sh -c '
+mmdc -q -i testdata/flow.mmd     -o testdata/flow.svg
+mmdc -q -i testdata/sequence.mmd -o testdata/sequence.svg
+mmdc -q -i testdata/state.mmd    -o testdata/state.svg
+'
+[@zenuml/core] Store is a function and is not initiated in 1 second.
+[@zenuml/core] Store is a function and is not initiated in 1 second.
+[@zenuml/core] Store is a function and is not initiated in 1 second.
+        5.64 real         1.90 user         0.39 sys
+```
+
+(There's also some warning/error in the MermaidJS source, and those messages leak and cannot suppressed without the stifling `... > /dev/null`).
 
 This mermaid-cli accepts multiple documents (and so can amortize the cost of spinning up the headless browser):
 
