@@ -3,7 +3,7 @@ Mermaid-CLI takes MermaidJS documents with a .mmd extension and
 renders them to SVG files with the same name but with a .svg
 extension.
 
-usage: mermaid-cli [-l] [-w] file.mmd [file2.mmd ...]
+usage: mermaid-cli [-l] [-w] [-outdir] file.mmd [file2.mmd ...]
 
 The following was inspired by:
 https://github.com/abhinav/goldmark-mermaid/blob/main/mermaidcdp/compiler.go
@@ -13,12 +13,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -32,6 +34,7 @@ import (
 var (
 	watchFlag = flag.Bool("w", false, "watch files and render")
 	logFlag   = flag.Bool("l", false, "turn on logging")
+	dirFlag   = flag.String("outdir", "", "output directory for SVGs")
 
 	renderer svgRenderer
 )
@@ -42,7 +45,7 @@ const (
 )
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: mermaid-cli [-l] [-w] file.mmd [file2.mmd ...]")
+	fmt.Fprintln(os.Stderr, "usage: mermaid-cli [-l] [-w] [-outdir] file.mmd [file2.mmd ...]")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -73,9 +76,13 @@ func main() {
 		if !strings.HasSuffix(inputName, mmd) {
 			fatalf("got input MermaidJS document %s; expected it to end with %s", inputName, mmd)
 		}
+		svgName := strings.TrimSuffix(inputName, mmd) + svg
+		if *dirFlag != "" {
+			svgName = path.Join(*dirFlag, path.Base(svgName))
+		}
 		pairs = append(pairs, renderPair{
 			mmdName: inputName,
-			svgName: strings.TrimSuffix(inputName, mmd) + svg,
+			svgName: svgName,
 		})
 	}
 
@@ -150,7 +157,10 @@ func render(pair renderPair) {
 		fatalf("couldn't read MMD: %v", err)
 	}
 
-	svgResult := renderer.Render(string(b))
+	svgResult, err := renderer.Render(string(b))
+	if err != nil {
+		fatalf("couldn't render %s: %v", pair.mmdName, err)
+	}
 
 	if err := os.WriteFile(pair.svgName, []byte(svgResult), 0644); err != nil {
 		fatalf("couldn't write SVG: %v", err)
@@ -231,9 +241,7 @@ func NewRenderer() svgRenderer {
 
 // Render calls the extras renderSVG func to render mmdSource to
 // SVG.
-//
-// Prints and exits for any error.
-func (r svgRenderer) Render(mmdSource string) (svgResult string) {
+func (r svgRenderer) Render(mmdSource string) (svgResult string, err error) {
 	jsSource := jsonEncodeJS("renderSVG(", mmdSource, ")")
 
 	render := chromedp.Evaluate(
@@ -244,11 +252,11 @@ func (r svgRenderer) Render(mmdSource string) (svgResult string) {
 		},
 	)
 
-	if err := chromedp.Run(r.ctx, render); err != nil {
-		fatalf("couldn't render: %v", err)
+	if err = chromedp.Run(r.ctx, render); err != nil {
+		return "", unescapeErr(err)
 	}
 
-	return svgResult
+	return svgResult, nil
 }
 
 // Stop stops the headless Chrome browser.
@@ -272,17 +280,28 @@ func jsonEncodeJS(pre string, encodable any, post string) string {
 	return jsSource.String()
 }
 
+var unescaper = strings.NewReplacer(
+	"Error: ", "Error:\n",
+	`\n`, "\n",
+)
+
+func unescapeErr(err error) error {
+	return errors.New(unescaper.Replace(err.Error()))
+}
+
 func enableLogging() {
 	log.SetFlags(3)
 	log.SetOutput(os.Stderr)
 }
 
 // fatalf logs the format string and its arguments to Stderr and
-// exits with return code 1.
+// exits with return code 1.  It also stops the renderer.
 //
 // It also adds some extra formatting so the caller doesn't have
 // to.
 func fatalf(format string, args ...any) {
+	renderer.Stop()
+
 	if !strings.HasPrefix(format, "error: ") {
 		format = "error: " + format
 	}
