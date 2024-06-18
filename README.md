@@ -5,7 +5,7 @@
 Usage:
 
 ```
-mermaid-cli [-l] [-w] file.mmd [file2.mmd ...]
+mermaid-cli [-l] [-w] [-outdir] file.mmd [file2.mmd ...]
 ```
 
 file.mmd will be rendered to SVG as file.svg, file2.mmd to file2.svg, etc...
@@ -79,3 +79,5 @@ It also has a simple watch flag that checks the input files every 250ms for new 
 2024/06/17 12:32:12 done watching
 2024/06/17 12:32:12 stopped headless browser
 ```
+
+By default, the cli saves an SVG file in the same directory as its source MermaidJS document.  The -outdir flag specifies one directory where all SVG files will be saved.
