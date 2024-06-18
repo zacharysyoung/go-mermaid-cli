@@ -27,30 +27,35 @@ Thank you, Abhinav Gupta!
 
 I wanted lower latency than the official [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) for a default render of multiple documents to SVG.
 
-Given this script to render the flow.mmd, sequence.mmd, and state.mmd files in [testdata](./testdata):
+Given this minimal MermaidJS document:
 
-```sh
-#!/bin/sh
-
-ls testdata/*.mmd | while read MMD; do
-	svgName=$(echo $MMD | sed 's/\.mmd/\.svg/')
-	mmdc -q -i $MMD -o $svgName
-done
+```mermaid
+flowchart TD
+    A[Getting there] -->B{Let me think}
+    B -->|One| C[Walk]
+    B -->|Two| D[fa:fa-bus fa:fa-train Public transit]
+    B -->|Three| E[fa:fa-bicycle Bike]
 ```
 
-I was seeing latency of ~2s for each document:
+I was seeing ~2s to render with the official mermaid-cli:
 
 ```none
-% /usr/bin/time sh render.sh
+/usr/bin/time mmdc -i testdata/flow.mmd -o testdata/flow.svg
+Generating single mermaid chart
 [@zenuml/core] Store is a function and is not initiated in 1 second.
-[@zenuml/core] Store is a function and is not initiated in 1 second.
-[@zenuml/core] Store is a function and is not initiated in 1 second.
-        5.67 real         5.71 user         1.20 sys
+        1.93 real         1.94 user         0.39 sys
 ```
 
-The puppeteer JS code and built-in Chromium browser have to be started for each input file. Also, there's presently some error in MermaidJS itself and the error message leaks out and cannot be suppressed (without `... > /dev/null`).
+With this mermaid-cli it's down to ~500ms:
 
-This project uses a user-installed installed Chrome and communicates directly with it through the Chrome Devtools Protocol. It also allows passing multiple input files, to reuse the spun-up headless browswer:
+```none
+% /usr/bin/time mermaid-cli testdata/flow.mmd
+        0.51 real         0.13 user         0.06 sys
+```
+
+The official cli doesn't support (as far as I can see) batching multiple documents, which means that in the background multiple instances of a headless browser have to be spun up, one after the other, for each document.
+
+This mermaid-cli accepts multiple documents (and so can amortize the cost of spinning up the headless browser):
 
 ```none
 % /usr/bin/time mermaid-cli -l testdata/*.mmd
@@ -84,18 +89,18 @@ By default, the cli saves an SVG file in the same directory as its source Mermai
 
 ```none
 % mermaid-cli -l a/flow.mmd b/state.mmd
-2024/06/18 13:18:31 starting headless browser
+...
 2024/06/18 13:18:32 rendered a/flow.svg
 2024/06/18 13:18:32 rendered b/state.svg
-2024/06/18 13:18:32 stopped headless browser
+...
 ```
 
 The -outdir flag specifies one directory where all SVG files will be saved:
 
 ```none
 % mermaid-cli -l -outdir=tmp a/flow.mmd b/state.mmd
-2024/06/18 13:19:02 starting headless browser
+...
 2024/06/18 13:19:03 rendered tmp/flow.svg
 2024/06/18 13:19:03 rendered tmp/state.svg
-2024/06/18 13:19:03 stopped headless browser
+...
 ```
