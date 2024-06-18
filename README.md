@@ -40,7 +40,7 @@ flowchart TD
 I was seeing ~2s to render with the official mermaid-cli:
 
 ```none
-/usr/bin/time mmdc -i testdata/flow.mmd -o testdata/flow.svg
+% /usr/bin/time mmdc -i testdata/flow.mmd -o testdata/flow.svg
 Generating single mermaid chart
 [@zenuml/core] Store is a function and is not initiated in 1 second.
         1.93 real         1.94 user         0.39 sys
@@ -87,7 +87,7 @@ It also has a simple watch flag that checks the input files every 250ms for new 
 
 ```none
 % mermaid-cli -l -w testdata/*.mmd
-2024/06/17 12:31:56 starting headless browser
+...
 2024/06/17 12:31:56 rendered testdata/flow.svg
 2024/06/17 12:31:56 rendered testdata/sequence.svg
 2024/06/17 12:31:56 rendered testdata/state.svg
@@ -96,7 +96,7 @@ It also has a simple watch flag that checks the input files every 250ms for new 
 2024/06/17 12:32:09 rendered testdata/state.svg
 ^C
 2024/06/17 12:32:12 done watching
-2024/06/17 12:32:12 stopped headless browser
+...
 ```
 
 By default, the cli saves an SVG file in the same directory as its source MermaidJS document:
