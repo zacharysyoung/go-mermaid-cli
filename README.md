@@ -80,4 +80,22 @@ It also has a simple watch flag that checks the input files every 250ms for new 
 2024/06/17 12:32:12 stopped headless browser
 ```
 
-By default, the cli saves an SVG file in the same directory as its source MermaidJS document.  The -outdir flag specifies one directory where all SVG files will be saved.
+By default, the cli saves an SVG file in the same directory as its source MermaidJS document:
+
+```none
+% mermaid-cli -l a/flow.mmd b/state.mmd
+2024/06/18 13:18:31 starting headless browser
+2024/06/18 13:18:32 rendered a/flow.svg
+2024/06/18 13:18:32 rendered b/state.svg
+2024/06/18 13:18:32 stopped headless browser
+```
+
+The -outdir flag specifies one directory where all SVG files will be saved:
+
+```none
+% mermaid-cli -l -outdir=tmp a/flow.mmd b/state.mmd
+2024/06/18 13:19:02 starting headless browser
+2024/06/18 13:19:03 rendered tmp/flow.svg
+2024/06/18 13:19:03 rendered tmp/state.svg
+2024/06/18 13:19:03 stopped headless browser
+```
