@@ -5,7 +5,13 @@
 Usage:
 
 ```
-mermaid-cli [-l] [-w] [-outdir] file.mmd [file2.mmd ...]
+mermaid-cli [-log] [-watch] [-outdir=DIR] file.mmd [file2.mmd ...]
+  -log
+    	turn on logging
+  -outdir string
+    	output directory for SVGs
+  -watch
+    	watch files and render
 ```
 
 file.mmd will be rendered to SVG as file.svg, file2.mmd to file2.svg, etc...
@@ -25,7 +31,7 @@ Thank you, Abhinav Gupta!
 
 ## Motivation
 
-I wanted lower latency than the official [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) for a default render of multiple documents to SVG.
+I wanted lower latency than the official [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) for rendering multiple documents to SVG.
 
 |                     | Official cli | This cli |
 | ------------------- | -----------: | -------: |
@@ -85,7 +91,7 @@ mmdc -q -i testdata/state.mmd    -o testdata/state.svg
 This mermaid-cli accepts multiple documents (and so can amortize the cost of spinning up the headless browser):
 
 ```
-% /usr/bin/time mermaid-cli -l testdata/*.mmd
+% /usr/bin/time mermaid-cli -log testdata/*.mmd
 2024/06/17 12:31:23 starting headless browser
 2024/06/17 12:31:24 rendered testdata/flow.svg
 2024/06/17 12:31:24 rendered testdata/sequence.svg
@@ -94,12 +100,12 @@ This mermaid-cli accepts multiple documents (and so can amortize the cost of spi
         0.53 real         0.13 user         0.06 sys
 ```
 
-Log events (with the -l flag) print to standard error.
+Log events (with the -log flag) print to standard error.
 
 It also has a simple watch flag that checks the input files every 250ms for new modification times.  If it finds a newly-modified input file it re-renders it:
 
 ```
-% mermaid-cli -l -w testdata/*.mmd
+% mermaid-cli -log -watch testdata/*.mmd
 ...
 2024/06/17 12:31:56 rendered testdata/flow.svg
 2024/06/17 12:31:56 rendered testdata/sequence.svg
@@ -115,7 +121,7 @@ It also has a simple watch flag that checks the input files every 250ms for new 
 By default, the cli saves an SVG file in the same directory as its source MermaidJS document:
 
 ```
-% mermaid-cli -l a/flow.mmd b/state.mmd
+% mermaid-cli -log a/flow.mmd b/state.mmd
 ...
 2024/06/18 13:18:32 rendered a/flow.svg
 2024/06/18 13:18:32 rendered b/state.svg
@@ -125,7 +131,7 @@ By default, the cli saves an SVG file in the same directory as its source Mermai
 The -outdir flag specifies one directory where all SVG files will be saved:
 
 ```
-% mermaid-cli -l -outdir=tmp a/flow.mmd b/state.mmd
+% mermaid-cli -log -outdir=tmp a/flow.mmd b/state.mmd
 ...
 2024/06/18 13:19:03 rendered tmp/flow.svg
 2024/06/18 13:19:03 rendered tmp/state.svg
