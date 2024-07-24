@@ -27,9 +27,22 @@ Thank you, Abhinav Gupta!
 
 I wanted lower latency than the official [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) for a default render of multiple documents to SVG.
 
+|                     | Official cli | This cli |
+| ------------------- | -----------: | -------: |
+| 1 minimal document  |        1.93s |    0.51s |
+| 3 minimal documents |        5.64s |    0.53s |
+
 Given this minimal MermaidJS document:
 
-```mermaid
+```
+flowchart TD
+    A[Getting there] -->B{Let me think}
+    B -->|One| C[Walk]
+    B -->|Two| D[fa:fa-bus fa:fa-train Public transit]
+    B -->|Three| E[fa:fa-bicycle Bike]
+```
+
+```
 flowchart TD
     A[Getting there] -->B{Let me think}
     B -->|One| C[Walk]
@@ -39,7 +52,7 @@ flowchart TD
 
 I was seeing ~2s to render with the official mermaid-cli:
 
-```none
+```
 % /usr/bin/time mmdc -i testdata/flow.mmd -o testdata/flow.svg
 Generating single mermaid chart
 [@zenuml/core] Store is a function and is not initiated in 1 second.
@@ -48,14 +61,14 @@ Generating single mermaid chart
 
 With this mermaid-cli it's down to ~500ms:
 
-```none
+```
 % /usr/bin/time mermaid-cli testdata/flow.mmd
         0.51 real         0.13 user         0.06 sys
 ```
 
 The official cli doesn't support (as far as I can see) batching multiple documents, which means that in the background multiple instances of a headless browser have to be spun up, one after the other, for each document:
 
-```none
+```
 % /usr/bin/time sh -c '
 mmdc -q -i testdata/flow.mmd     -o testdata/flow.svg
 mmdc -q -i testdata/sequence.mmd -o testdata/sequence.svg
@@ -71,7 +84,7 @@ mmdc -q -i testdata/state.mmd    -o testdata/state.svg
 
 This mermaid-cli accepts multiple documents (and so can amortize the cost of spinning up the headless browser):
 
-```none
+```
 % /usr/bin/time mermaid-cli -l testdata/*.mmd
 2024/06/17 12:31:23 starting headless browser
 2024/06/17 12:31:24 rendered testdata/flow.svg
@@ -85,7 +98,7 @@ Log events (with the -l flag) print to standard error.
 
 It also has a simple watch flag that checks the input files every 250ms for new modification times.  If it finds a newly-modified input file it re-renders it:
 
-```none
+```
 % mermaid-cli -l -w testdata/*.mmd
 ...
 2024/06/17 12:31:56 rendered testdata/flow.svg
@@ -101,7 +114,7 @@ It also has a simple watch flag that checks the input files every 250ms for new 
 
 By default, the cli saves an SVG file in the same directory as its source MermaidJS document:
 
-```none
+```
 % mermaid-cli -l a/flow.mmd b/state.mmd
 ...
 2024/06/18 13:18:32 rendered a/flow.svg
@@ -111,7 +124,7 @@ By default, the cli saves an SVG file in the same directory as its source Mermai
 
 The -outdir flag specifies one directory where all SVG files will be saved:
 
-```none
+```
 % mermaid-cli -l -outdir=tmp a/flow.mmd b/state.mmd
 ...
 2024/06/18 13:19:03 rendered tmp/flow.svg

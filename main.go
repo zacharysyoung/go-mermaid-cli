@@ -3,7 +3,7 @@ Mermaid-CLI takes MermaidJS documents with a .mmd extension and
 renders them to SVG files with the same name but with a .svg
 extension.
 
-usage: mermaid-cli [-l] [-w] [-outdir] file.mmd [file2.mmd ...]
+usage: mermaid-cli [-log] [-watch] [-outdir=DIR] file.mmd [file2.mmd ...]
 
 The following was inspired by:
 https://github.com/abhinav/goldmark-mermaid/blob/main/mermaidcdp/compiler.go
@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	watchFlag = flag.Bool("w", false, "watch files and render")
-	logFlag   = flag.Bool("l", false, "turn on logging")
+	watchFlag = flag.Bool("watch", false, "watch files and render")
+	logFlag   = flag.Bool("log", false, "turn on logging")
 	dirFlag   = flag.String("outdir", "", "output directory for SVGs")
 
 	renderer svgRenderer
@@ -45,7 +45,7 @@ const (
 )
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: mermaid-cli [-l] [-w] [-outdir] file.mmd [file2.mmd ...]")
+	fmt.Fprintln(os.Stderr, "usage: mermaid-cli [-log] [-watch] [-outdir=DIR] file.mmd [file2.mmd ...]")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
